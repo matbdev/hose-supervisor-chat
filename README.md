@@ -26,6 +26,7 @@ This project consists of a Streamlit-based web interface developed to act as the
   - [Environment Variables Configuration](#environment-variables-configuration)
   - [Running via Docker (Recommended)](#running-via-docker-recommended)
   - [Local Execution](#local-execution)
+- [Code Quality and Formatting](#code-quality-and-formatting)
 
 ---
 
@@ -176,4 +177,30 @@ Access at: `http://localhost:8501`.
 
 ```bash
 python run.py
+```
+
+---
+
+## Code Quality and Formatting
+
+### Linting with Flake8
+
+Check for code style issues:
+
+```bash
+flake8 app/
+```
+
+### Formatting with Black
+
+Automatically format your Python code to follow PEP 8 conventions:
+
+```bash
+black app/
+```
+
+To check without modifying files:
+
+```bash
+black --check app/
 ```

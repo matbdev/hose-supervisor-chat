@@ -1,11 +1,13 @@
-from sqlalchemy.orm import sessionmaker, Session
 from contextlib import contextmanager
+from datetime import datetime
+from typing import Any, Generator
+
 from config.db_engine import engine
 from schemas.chat_schema import ChatHistory
-from datetime import datetime
-from typing import Generator, Any
+from sqlalchemy.orm import Session, sessionmaker
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
 
 # Dependency injection
 @contextmanager
@@ -24,18 +26,21 @@ def get_db_session() -> Generator[Session, None, None]:
     finally:
         session.close()
 
+
 def save_or_update_chat(
     chat_id: int | None,
     messages: list[dict[str, Any]],
     user_id: int = 1,
-    title: str | None = None
+    title: str | None = None,
 ) -> int:
     """
     Persists a new chat session or updates an existing one in the database.
     """
     data_atual = datetime.now()
     # Generate an automated title if none is provided
-    title = title if title else f"Conversa {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}"
+    title = (
+        title if title else f"Conversa {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}"
+    )
 
     with get_db_session() as session:
         if chat_id is None:
@@ -43,7 +48,7 @@ def save_or_update_chat(
                 user_id=user_id,
                 title=title,
                 chat_history=messages,
-                timestamp=data_atual
+                timestamp=data_atual,
             )
             session.add(new_chat)
             session.commit()
@@ -60,12 +65,13 @@ def save_or_update_chat(
                     user_id=user_id,
                     title=title,
                     chat_history=messages,
-                    timestamp=data_atual
+                    timestamp=data_atual,
                 )
                 session.add(new_chat)
                 session.commit()
                 session.refresh(new_chat)
                 return new_chat.id
+
 
 def get_user_chats(user_id: int = 1) -> list[dict[str, Any]]:
     """
@@ -73,12 +79,13 @@ def get_user_chats(user_id: int = 1) -> list[dict[str, Any]]:
     """
     with get_db_session() as session:
         chats = (
-            session
-            .query(ChatHistory.id, ChatHistory.title)
+            session.query(ChatHistory.id, ChatHistory.title)
             .filter(ChatHistory.user_id == user_id)
-            .order_by(ChatHistory.id.desc()).all()
+            .order_by(ChatHistory.id.desc())
+            .all()
         )
         return [{"id": chat.id, "title": chat.title} for chat in chats]
+
 
 def get_chat_messages(chat_id: int) -> list[dict[str, Any]]:
     """

@@ -1,18 +1,20 @@
 import random
+from typing import Any
+
+import pandas as pd
 import streamlit as st
 import streamlit.components.v1 as components
-from typing import Any
-import pandas as pd
 
-from .plot_chart import plot_chart
 from .payload_extraction import convert_markdown_table
+from .plot_chart import plot_chart
+
 
 def get_custom_css() -> str:
     """
-    Custom CSS to inject into the Streamlit application for better aesthetics and branding.
+    Custom CSS to inject into the Streamlit application for better
+    aesthetics and branding.
     """
-    return(
-        """
+    return """
         <style>
             [data-testid="stHeader"] {
                 background-color: #FFFFFF !important;
@@ -37,16 +39,16 @@ def get_custom_css() -> str:
                 background-color: #FFFFFF;
                 border-bottom: 1px solid #e6e6e6;
             }
-            
+
             .block-container {
                 padding-top: 200px;
-                padding-bottom: 0rem;
+                padding-bottom: 0rm;
                 padding-left: 5rem;
                 padding-right: 5rem;
             }
 
             /* Sidebar history button styles */
-            button[data-testid="stBaseButton-tertiary"], 
+            button[data-testid="stBaseButton-tertiary"],
             button[data-testid="stBaseButton-secondary"] {
                 text-align: left !important;
                 justify-content: flex-start !important;
@@ -89,26 +91,26 @@ def get_custom_css() -> str:
 
             .reportview-container {
                 margin-top: -2em;
-            } 
-            
+            }
+
             #MainMenu {
                 visibility: hidden;
             }
-            
+
             .stDeployButton {
                 display:none;
             }
-            
+
             footer {
                 visibility: hidden;
             }
-            
+
             #stDecoration {
                 display:none;
             }
         </style>
         """
-    )
+
 
 def get_mangueiras_questions() -> list[str]:
     """
@@ -129,11 +131,13 @@ def get_mangueiras_questions() -> list[str]:
         "Mostre-me as 5 mangueiras mais rentáveis no momento.",
         "Qual o top 5 de vendas brutas para os produtos tipo mangueira?",
         "Quais as top 5 mangueiras em termos de receita total?",
-        "Quais são os 5 principais itens de mangueiras considerando o faturamento?"
+        "Quais são os 5 principais itens de mangueiras considerando o faturamento?",
     ]
+
 
 def get_random_placeholder() -> str:
     return f"Ex: {random.choice(get_mangueiras_questions())}"
+
 
 def scroll_to_bottom() -> None:
     """
@@ -141,7 +145,9 @@ def scroll_to_bottom() -> None:
     """
     js = """
     <script>
-        var body = window.parent.document.querySelector('.stMain') || window.parent.document.querySelector('.stApp');
+        var main = window.parent.document.querySelector('.stMain');
+        var app = window.parent.document.querySelector('.stApp');
+        var body = main || app;
         if (body) {
             body.scrollTo({top: body.scrollHeight, behavior: 'smooth'});
         } else {
@@ -151,17 +157,19 @@ def scroll_to_bottom() -> None:
     """
     components.iframe(js, height=0)
 
+
 def render_complex_response(
-    text_list: list[str], 
+    text_list: list[str],
     charts_data: list[tuple[pd.DataFrame, str]] | None = None,
-    msg_index: int | str = "new"
+    msg_index: int | str = "new",
 ) -> tuple[list[pd.DataFrame], list[Any]]:
     """
-    Iterates through a list of text parts to render tables and Plotly charts within the dashboard.
+    Iterates through text parts to render tables and Plotly charts
+    within the dashboard.
     """
     saved_dfs: list[pd.DataFrame] = []
     saved_figs: list[Any] = []
-    
+
     # Render text and markdown tables
     for i, part in enumerate(text_list):
         if i % 2 == 0:
@@ -177,16 +185,20 @@ def render_complex_response(
                     st.markdown(part.replace("$", "&#36;"))
             except Exception:
                 st.markdown(part.replace("$", "&#36;"))
-                
+
     # Render charts if provided
     if charts_data:
         for idx, (chart_df, tipo_grafico) in enumerate(charts_data):
-            if chart_df is not None and not chart_df.empty:                    
+            if chart_df is not None and not chart_df.empty:
                 try:
                     fig = plot_chart(chart_df, chart_type=tipo_grafico)
-                    st.plotly_chart(fig, key=f"dynamic_chart_{msg_index}_{idx}")
+                    st.plotly_chart(
+                        fig,
+                        key=f"dynamic_chart_{msg_index}_{idx}",
+                    )
                     saved_figs.append(fig)
                 except Exception as e:
-                    st.error(f"Erro ao plotar o gráfico dinâmico {idx+1}: {e}")
-                    
+                    msg_err = f"Erro ao plotar gráfico {idx+1}: {e}"
+                    st.error(msg_err)
+
     return saved_dfs, saved_figs

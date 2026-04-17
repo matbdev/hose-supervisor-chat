@@ -26,6 +26,7 @@ Este projeto consiste em uma interface web baseada em Streamlit desenvolvida par
   - [Configuração de Variáveis de Ambiente](#configuração-de-variáveis-de-ambiente)
   - [Execução via Docker (Recomendado)](#execução-via-docker-recomendado)
   - [Execução Local](#execução-local)
+- [Qualidade de Código e Formatação](#qualidade-de-código-e-formatação)
 
 ---
 
@@ -176,4 +177,30 @@ Acesse em: `http://localhost:8501`.
 
 ```bash
 python run.py
+```
+
+---
+
+## Qualidade de Código e Formatação
+
+### Linting com Flake8
+
+Verifique problemas de estilo no código:
+
+```bash
+flake8 app/
+```
+
+### Formatação com Black
+
+Formate automaticamente seu código Python para seguir as convenções PEP 8:
+
+```bash
+black app/
+```
+
+Para verificar sem modificar os arquivos:
+
+```bash
+black --check app/
 ```
