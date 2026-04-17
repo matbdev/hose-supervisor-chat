@@ -128,7 +128,7 @@ for idx, msg in enumerate(st.session_state.messages):
 
                 if "viz_list" in msg:
                     for fig_idx, fig in enumerate(msg["viz_list"]):
-                        st.plotly_chart(fig, key=f"hist_chart_{unique_key}_{fig_idx}")
+                        st.plotly_chart(fig, key=f"dynamic_chart_{unique_key}_{fig_idx}")
             else:
                 st.markdown(
                     msg["content"].replace("\n", "  \n")
@@ -161,11 +161,14 @@ if len(st.session_state.messages) == 0:
 # Handle user input and API communication
 if prompt := st.chat_input(st.session_state.placeholder, key="chat_input"):
     st.session_state.placeholder = get_random_placeholder()
+    scroll_to_bottom()
     welcome_placeholder.empty()
 
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt.replace("\n", "  \n"))
+
+    scroll_to_bottom()
 
     # Prepare simplified message list for API consumption
     api_messages = []
@@ -175,73 +178,68 @@ if prompt := st.chat_input(st.session_state.placeholder, key="chat_input"):
 
     payload = {"input": api_messages}
 
-    scroll_placeholder = st.empty()
-    with scroll_placeholder:
-        scroll_to_bottom()
-
     with st.chat_message("assistant"):
         with st.spinner("O especialista está analisando sua pergunta..."):
             scroll_to_bottom()
             response = handle_request(payload)
 
-            if response.status_code == 200:
-                raw_data = response.json()
-                output_steps = raw_data.get("output", [])
+        if response.status_code == 200:
+            raw_data = response.json()
+            output_steps = raw_data.get("output", [])
 
-                final_text = get_final_response(output_steps)
-                charts = extract_charts_from_payload(output_steps)
-                text_list = split_text_for_table(final_text)
+            final_text = get_final_response(output_steps)
+            charts = extract_charts_from_payload(output_steps)
+            text_list = split_text_for_table(final_text)
 
-                scroll_placeholder.empty()
-                st.markdown("**Resposta do Databricks**")
+            st.markdown("**Resposta do Databricks**")
 
-                # Unique key
-                thread_id = (
-                    st.session_state.chat_thread_id
-                    if st.session_state.chat_thread_id
-                    else "new"
-                )
-                unique_key = f"{thread_id}_{len(st.session_state.messages)}"
+            # Unique key
+            thread_id = (
+                st.session_state.chat_thread_id
+                if st.session_state.chat_thread_id
+                else "new"
+            )
+            unique_key = f"{thread_id}_{len(st.session_state.messages)}"
 
-                saved_dfs, saved_figs = render_complex_response(
-                    text_list,
-                    charts_data=charts,
-                    msg_index=len(st.session_state.messages),
-                )
+            saved_dfs, saved_figs = render_complex_response(
+                text_list,
+                charts_data=charts,
+                msg_index=unique_key,
+            )
 
-                saved_message = {
-                    "role": "assistant",
-                    "content": final_text,
-                    "raw_data": raw_data,
-                }
+            saved_message = {
+                "role": "assistant",
+                "content": final_text,
+                "raw_data": raw_data,
+            }
 
-                if saved_figs:
-                    saved_message["viz_list"] = saved_figs
+            if saved_figs:
+                saved_message["viz_list"] = saved_figs
 
-                if saved_dfs:
-                    saved_message["df_list"] = saved_dfs
+            if saved_dfs:
+                saved_message["df_list"] = saved_dfs
 
-                st.session_state.messages.append(saved_message)
+            st.session_state.messages.append(saved_message)
 
-                # Sync conversation state with PostgreSQL
-                db_messages = []
-                for m in st.session_state.messages:
-                    if not m.get("is_error"):
-                        msg_to_save = {"role": m["role"], "content": m["content"]}
-                        if "raw_data" in m:
-                            msg_to_save["raw_data"] = m["raw_data"]
-                        db_messages.append(msg_to_save)
+            # Sync conversation state with PostgreSQL
+            db_messages = []
+            for m in st.session_state.messages:
+                if not m.get("is_error"):
+                    msg_to_save = {"role": m["role"], "content": m["content"]}
+                    if "raw_data" in m:
+                        msg_to_save["raw_data"] = m["raw_data"]
+                    db_messages.append(msg_to_save)
 
-                new_id = save_or_update_chat(
-                    chat_id=st.session_state.chat_thread_id,
-                    messages=db_messages,
-                )
-                st.session_state.chat_thread_id = new_id
+            new_id = save_or_update_chat(
+                chat_id=st.session_state.chat_thread_id,
+                messages=db_messages,
+            )
+            st.session_state.chat_thread_id = new_id
 
-            else:
-                status = response.status_code
-                error_msg = f"Erro na comunicação com Databricks (Status {status})."
-                st.error(error_msg)
-                st.session_state.messages.append(
-                    {"role": "assistant", "content": error_msg, "is_error": True}
-                )
+        else:
+            status = response.status_code
+            error_msg = f"Erro na comunicação com Databricks (Status {status})."
+            st.error(error_msg)
+            st.session_state.messages.append(
+                {"role": "assistant", "content": error_msg, "is_error": True}
+            )

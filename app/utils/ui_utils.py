@@ -1,4 +1,5 @@
 import random
+import time
 from typing import Any
 
 import pandas as pd
@@ -143,19 +144,22 @@ def scroll_to_bottom() -> None:
     """
     JavaScript injection to force the window to scroll to the latest message.
     """
-    js = """
+    uid = time.time()
+
+    js = f"""
     <script>
+        // Execução: {uid}
         var main = window.parent.document.querySelector('.stMain');
         var app = window.parent.document.querySelector('.stApp');
         var body = main || app;
-        if (body) {
-            body.scrollTo({top: body.scrollHeight, behavior: 'smooth'});
-        } else {
+        if (body) {{
+            body.scrollTo({{top: body.scrollHeight, behavior: 'smooth'}});
+        }} else {{
             window.parent.scrollTo(0, window.parent.document.body.scrollHeight);
-        }
+        }}
     </script>
     """
-    components.iframe(js, height=0)
+    components.html(js, height=0)
 
 
 def render_complex_response(
