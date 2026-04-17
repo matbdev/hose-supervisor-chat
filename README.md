@@ -42,9 +42,11 @@ This Streamlit application solves this restriction. The tool orchestration, data
 The project scope exclusively serves the "Hoses" product family. Routing follows a structured and validated pipeline.
 
 ### The Gatekeeper
+
 For any inquiry involving a specific SKU or product code, the agent first triggers the `check_is_hose` function. If the validation returns false, indicating the product is not in the Hoses category, the agent has the necessary autonomy and governance to immediately stop the analytical flow execution.
 
 ### Data Specialists
+
 The architecture prohibits statistical guessing, depending solely on deterministic functions based on a rigorous routing prompt:
 
 - **Volume and Margin:** Responsible for the static photography of results (Gross Margin, COGS, Net Revenue). It exactly calculates customer or merchandise billing and profits in closed periods.
@@ -53,6 +55,7 @@ The architecture prohibits statistical guessing, depending solely on determinist
 - **Production:** Analyzes Work In Progress (WIP) on the factory floor, production delays, pending manufacturing order schedules, and temporal bottlenecks in assembly lines, answering the premise "when will the product be available?".
 
 ### The Strategist
+
 Upon obtaining all crossed data from the previous areas, the Supervisor assumes the role of Consulting Strategist. The response delivered to the user is executive, drawing smart connections (example: the sharp drop in billing in an SKU by X% occurred due to a stop and delay in Production cycles). Focused action plans are generated in a unified format in the chat body, while complementary charts illustrate the metric.
 
 ---
@@ -69,6 +72,7 @@ Upon obtaining all crossed data from the previous areas, the Supervisor assumes 
 ## Persistence and History
 
 Unlike purely stateless systems, this project implements full persistence:
+
 - **Database:** Uses **PostgreSQL** to store conversations.
 - **ORM:** **SQLAlchemy** manages the data layer and schemas.
 - **Sidebar History:** The sidebar menu dynamically loads past conversations from the database, allowing previous analyses to be resumed with one click.
@@ -86,9 +90,9 @@ supervisor-mangueiras/
 │   ├── utils/                # Utilities (Extraction, UI, DB, Plotly)
 │   └── app.py                # Streamlit entry point
 ├── .streamlit/               # Streamlit configurations
-├── .dockerignore             
+├── .dockerignore
 ├── .env                      # Environment variables (Secrets and Hosts)
-├── .gitignore                
+├── .gitignore
 ├── docker-compose.yml        # Manifesto for multi-service Dockerized execution
 ├── Dockerfile                # OS Recipe + Framework for containerized environment
 ├── requirements.txt          # Execution dependencies
@@ -109,6 +113,7 @@ Create a `.env` file at the root of the repository containing Databricks account
 DATABRICKS_HOST=https://your-workspace.databricks.com
 DATABRICKS_TOKEN=your_token
 ENDPOINT_NAME=your_endpoint
+CHART_DATA_JSON_FUNCTION=your_function_that_converts_data_into_json_on_databricks
 
 # Database
 POSTGRES_USER=user
@@ -123,11 +128,13 @@ DB_PORT=5432
 To run the application natively by separating all dependencies in your environment, it is recommended to use a native Python `venv`:
 
 1. **Create the virtual environment (venv):**
+
 ```bash
 python -m venv venv
 ```
 
 2. **Activate the environment:**
+
 - On Windows (Prompt/PowerShell):
   ```bash
   venv\Scripts\activate
@@ -138,11 +145,13 @@ python -m venv venv
   ```
 
 3. **Install required dependencies in the repository:**
+
 ```bash
 pip install -r requirements.txt
 ```
 
 4. **Start the Streamlit server:**
+
 ```bash
 streamlit run app.py
 ```
@@ -152,9 +161,11 @@ streamlit run app.py
 The project uses `docker-compose` to spin up both the interface and the database in an integrated way:
 
 1. Build the Docker image and start the services in detach mode:
+
 ```bash
 docker-compose up -d --build
 ```
+
 Access at: `http://localhost:8501`.
 
 ### Local Execution
@@ -162,6 +173,7 @@ Access at: `http://localhost:8501`.
 1. Install dependencies: `pip install -r requirements.txt`
 2. Ensure you have a local Postgres running and adjust the `.env`.
 3. Run via helper script:
+
 ```bash
 python run.py
 ```
