@@ -128,7 +128,9 @@ for idx, msg in enumerate(st.session_state.messages):
 
                 if "viz_list" in msg:
                     for fig_idx, fig in enumerate(msg["viz_list"]):
-                        st.plotly_chart(fig, key=f"dynamic_chart_{unique_key}_{fig_idx}")
+                        st.plotly_chart(
+                            fig, key=f"dynamic_chart_{unique_key}_{fig_idx}"
+                        )
             else:
                 st.markdown(
                     msg["content"].replace("\n", "  \n")
